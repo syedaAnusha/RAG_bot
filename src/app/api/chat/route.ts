@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { NextRequest, NextResponse } from "next/server";
 import { HuggingFaceInference } from "@langchain/community/llms/hf";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
@@ -8,6 +7,16 @@ import { withMonitoring } from "@/utils/monitoring";
 import { createStuffDocumentsChain } from "langchain/chains/combine_documents";
 import { createRetrievalChain } from "langchain/chains/retrieval";
 
+interface DocumentInput {
+  pageContent: string;
+  metadata: {
+    source: string;
+    type: string;
+    id: string;
+    [key: string]: unknown;
+  };
+}
+
 if (!process.env.HUGGINGFACE_API_KEY) {
   throw new Error("Missing HUGGINGFACE_API_KEY environment variable");
 }
@@ -15,11 +24,11 @@ if (!process.env.HUGGINGFACE_API_KEY) {
 // Initialize Hugging Face model
 const llm = new HuggingFaceInference({
   apiKey: process.env.HUGGINGFACE_API_KEY,
-  model: "mistralai/Mixtral-8x7B-Instruct-v0.1", // Using Mixtral, one of the best open models
+  model: "mistralai/Mixtral-8x7B-Instruct-v0.1",
   temperature: 0.7,
 });
 
-// Create a custom prompt template for better context injection
+// Create a custom prompt template
 const prompt = ChatPromptTemplate.fromTemplate(`
 You are a helpful assistant answering questions based on the provided documents.
 Use the following pieces of context to answer the question at the end.
@@ -34,7 +43,7 @@ Answer: `);
 export async function POST(req: NextRequest) {
   return withMonitoring(req, "/api/chat", async () => {
     try {
-      const { message, documents, history = "" } = await req.json();
+      const { message, documents } = await req.json();
 
       if (!message) {
         return NextResponse.json(
@@ -43,35 +52,26 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      let vectorStore;
+      // Transform documents into LangChain format if needed
+      const langChainDocs = documents?.map(
+        (doc: DocumentInput) => new Document(doc)
+      );
 
-      if (documents) {
-        // If documents are provided, create a new store
-        vectorStore = await getVectorStore(documents as Document[]);
-      } else {
-        // Try to load existing store
-        try {
-          vectorStore = await getVectorStore();
-        } catch (error) {
-          return NextResponse.json(
-            { error: "No documents available to search through" },
-            { status: 400 }
-          );
-        }
-      }
+      // Get or create vector store
+      const vectorStore = await getVectorStore(langChainDocs);
 
-      // Create the document chain that combines retrieved documents
+      // Create the document chain
       const combineDocsChain = await createStuffDocumentsChain({
         llm,
         prompt,
       });
 
-      // Create the retriever with configuration
+      // Create the retriever
       const retriever = vectorStore.asRetriever({
         k: 3, // Number of documents to retrieve
       });
 
-      // Create the retrieval chain
+      // Create and run the retrieval chain
       const retrievalChain = await createRetrievalChain({
         combineDocsChain,
         retriever,
@@ -82,12 +82,10 @@ export async function POST(req: NextRequest) {
         input: message,
       });
 
-      // Extract source documents from the response
-      const sourceDocuments = response.context as Document[];
-
       return NextResponse.json({
-        response: response.answer,
-        sources: sourceDocuments?.map((doc: Document) => ({
+        text: response.answer,
+        sources: response.context?.map((doc: Document) => ({
+          id: doc.metadata.id,
           content: doc.pageContent.substring(0, 150) + "...",
           metadata: doc.metadata,
         })),

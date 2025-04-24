@@ -40,3 +40,14 @@ export interface Chat {
   name: string;
   messages: ChatMessage[];
 }
+
+export interface ChatAPISource {
+  id: string;
+  content: string;
+  metadata: {
+    source: string;
+    type: string;
+    id: string;
+    [key: string]: unknown;
+  };
+}

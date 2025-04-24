@@ -9,7 +9,7 @@ import { Document } from "@/types/chat";
 
 export default function RagChat() {
   const [documents, setDocuments] = useState<Document[]>([]);
-  const [darkMode, setDarkMode] = useState(true);
+  const [darkMode] = useState(true);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
 
@@ -24,7 +24,7 @@ export default function RagChat() {
           documents={documents}
           setDocuments={setDocuments}
           darkMode={darkMode}
-          setDarkMode={setDarkMode}
+          //   setDarkMode={setDarkMode}
           sidebarCollapsed={sidebarCollapsed}
           setSidebarCollapsed={setSidebarCollapsed}
           showMobileSidebar={showMobileSidebar}

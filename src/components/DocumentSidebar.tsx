@@ -32,7 +32,6 @@ interface DocumentSidebarProps {
     docs: Document[] | ((prevDocs: Document[]) => Document[])
   ) => void;
   darkMode: boolean;
-  setDarkMode: (dark: boolean) => void;
   sidebarCollapsed: boolean;
   setSidebarCollapsed: (collapsed: boolean) => void;
   showMobileSidebar: boolean;
@@ -43,7 +42,6 @@ export default function DocumentSidebar({
   documents,
   setDocuments,
   darkMode,
-  //   setDarkMode,
   sidebarCollapsed,
   setSidebarCollapsed,
   showMobileSidebar,
@@ -53,19 +51,17 @@ export default function DocumentSidebar({
 
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
-      // Process each file
-      acceptedFiles.forEach((file) => {
-        // Check file size (200MB limit)
+      for (const file of acceptedFiles) {
         if (file.size > 200 * 1024 * 1024) {
           toast({
             title: "File too large",
             description: `${file.name} exceeds the 200MB limit.`,
             duration: 3000,
           });
-          return;
+          continue;
         }
 
-        // Create a new document object
+        // Create initial document object
         const newDoc: Document = {
           id: Math.random().toString(36).substring(7),
           name: file.name,
@@ -79,25 +75,24 @@ export default function DocumentSidebar({
         // Add the document to the list
         setDocuments((prev) => [...prev, newDoc]);
 
-        // Simulate processing with progress
-        const interval = setInterval(() => {
-          setDocuments((prev) =>
-            prev.map((doc) =>
-              doc.id === newDoc.id
-                ? {
-                    ...doc,
-                    progress: doc.progress
-                      ? Math.min(doc.progress + 5, 100)
-                      : 5,
-                  }
-                : doc
-            )
-          );
-        }, 150);
+        try {
+          // Create form data
+          const formData = new FormData();
+          formData.append("file", file);
 
-        // Simulate completion after 3-6 seconds
-        setTimeout(() => {
-          clearInterval(interval);
+          // Upload and process the file
+          const response = await fetch("/api/upload", {
+            method: "POST",
+            body: formData,
+          });
+
+          if (!response.ok) {
+            throw new Error("Upload failed");
+          }
+
+          const data = await response.json();
+
+          // Update document with processed content
           setDocuments((prev) =>
             prev.map((doc) =>
               doc.id === newDoc.id
@@ -105,19 +100,41 @@ export default function DocumentSidebar({
                     ...doc,
                     status: "ready",
                     progress: 100,
-                    summary: "Document processed successfully.",
-                    content: `Sample content from ${file.name}`,
+                    content: data.documents[0]?.pageContent || "",
+                    summary: `Document processed with ${
+                      data.metadata?.chunkCount || 0
+                    } chunks`,
                   }
                 : doc
             )
           );
+
           toast({
             title: "Document processed",
             description: `${file.name} is ready to use.`,
             duration: 3000,
           });
-        }, 3000 + Math.random() * 3000);
-      });
+        } catch (error) {
+          console.error("Error processing file:", error);
+          setDocuments((prev) =>
+            prev.map((doc) =>
+              doc.id === newDoc.id
+                ? {
+                    ...doc,
+                    status: "error",
+                    progress: 100,
+                  }
+                : doc
+            )
+          );
+
+          toast({
+            title: "Processing failed",
+            description: `Failed to process ${file.name}. Please try again.`,
+            duration: 3000,
+          });
+        }
+      }
     },
     [setDocuments, toast]
   );

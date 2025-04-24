@@ -28,6 +28,7 @@ export async function processFile(file: File): Promise<Document[]> {
 
       case "text/plain":
         const textContent = await blob.text();
+        // For text files, create a document with the full content
         documents = [
           new Document({
             pageContent: textContent,
@@ -38,6 +39,8 @@ export async function processFile(file: File): Promise<Document[]> {
             },
           }),
         ];
+        // Split the text into chunks
+        documents = await splitIntoChunks(documents);
         break;
 
       case "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
@@ -49,11 +52,8 @@ export async function processFile(file: File): Promise<Document[]> {
         throw new Error(`Unsupported file type: ${file.type}`);
     }
 
-    // Split documents into chunks with overlap
-    const chunkedDocuments = await splitIntoChunks(documents);
-
     // Add additional metadata to chunks
-    return chunkedDocuments.map((doc, index) => ({
+    return documents.map((doc, index) => ({
       ...doc,
       metadata: {
         ...doc.metadata,

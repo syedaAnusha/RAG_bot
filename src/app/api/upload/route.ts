@@ -33,10 +33,14 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: error.message }, { status: 400 });
       }
 
+      // Process the file and get document chunks
       const documents = await processFile(file);
 
       return NextResponse.json({
-        documents,
+        documents: documents.map((doc) => ({
+          pageContent: doc.pageContent,
+          metadata: doc.metadata,
+        })),
         metadata: {
           fileName: file.name,
           fileSize: file.size,
@@ -44,10 +48,10 @@ export async function POST(req: NextRequest) {
           chunkCount: documents.length,
         },
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error processing file:", error);
       return NextResponse.json(
-        { error: "Error processing file" },
+        { error: error.message || "Error processing file" },
         { status: 500 }
       );
     }

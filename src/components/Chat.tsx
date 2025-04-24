@@ -6,7 +6,7 @@ import { ScrollArea } from "./ui/scroll-area";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
 import { Card } from "./ui/card";
-import { Document, ChatMessage } from "@/types/chat";
+import { Document, ChatMessage, ChatAPISource } from "@/types/chat";
 import { cn } from "@/lib/utils";
 
 interface ChatProps {
@@ -34,6 +34,18 @@ export default function Chat({ documents }: ChatProps) {
     setLoading(true);
 
     try {
+      // Transform UI documents to LangChain format
+      const processedDocs = documents
+        .filter((doc) => doc.status === "ready")
+        .map((doc) => ({
+          pageContent: doc.content || "",
+          metadata: {
+            source: doc.name,
+            type: doc.type,
+            id: doc.id,
+          },
+        }));
+
       // Make API call to /api/chat
       const response = await fetch("/api/chat", {
         method: "POST",
@@ -42,7 +54,7 @@ export default function Chat({ documents }: ChatProps) {
         },
         body: JSON.stringify({
           message: input,
-          documents,
+          documents: processedDocs,
         }),
       });
 
@@ -58,10 +70,7 @@ export default function Chat({ documents }: ChatProps) {
         role: "assistant",
         content: data.text || "I couldn't process your request.",
         timestamp: new Date(),
-        sources: documents
-          .filter((d) => d.status === "ready")
-          .slice(0, 3)
-          .map((d) => d.id),
+        sources: data.sources?.map((source: ChatAPISource) => source.metadata.id) || [],
       };
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (error) {
