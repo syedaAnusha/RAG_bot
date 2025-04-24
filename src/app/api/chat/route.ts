@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { NextRequest, NextResponse } from "next/server";
-import { ChatOpenAI } from "@langchain/openai";
+import { ChatOllama } from "@langchain/ollama";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { Document } from "@langchain/core/documents";
 import { getVectorStore } from "@/utils/vectorStore";
@@ -8,15 +8,10 @@ import { withMonitoring } from "@/utils/monitoring";
 import { createStuffDocumentsChain } from "langchain/chains/combine_documents";
 import { createRetrievalChain } from "langchain/chains/retrieval";
 
-if (!process.env.OPENAI_API_KEY) {
-  throw new Error("Missing OPENAI_API_KEY environment variable");
-}
-
-// Initialize ChatOpenAI with API key
-const llm = new ChatOpenAI({
-  modelName: "gpt-3.5-turbo",
-  temperature: 0.7,
-  openAIApiKey: process.env.OPENAI_API_KEY,
+// Initialize Ollama chat model
+const llm = new ChatOllama({
+  model: "mistral", // Using mistral model for chat
+  baseUrl: "http://localhost:11434", // Default Ollama server URL
 });
 
 // Create a custom prompt template for better context injection

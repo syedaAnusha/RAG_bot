@@ -1,14 +1,11 @@
 import { Chroma } from "@langchain/community/vectorstores/chroma";
-import { OpenAIEmbeddings } from "@langchain/openai";
+import { OllamaEmbeddings } from "@langchain/ollama";
 import { Document } from "@langchain/core/documents";
 
-if (!process.env.OPENAI_API_KEY) {
-  throw new Error("Missing OPENAI_API_KEY environment variable");
-}
-
-// Initialize embeddings with the API key
-const embeddings = new OpenAIEmbeddings({
-  openAIApiKey: process.env.OPENAI_API_KEY,
+// Initialize embeddings with Ollama
+const embeddings = new OllamaEmbeddings({
+  model: "mistral", // Using mistral model for embeddings
+  baseUrl: "http://localhost:11434", // Default Ollama server URL
 });
 
 // Collection name for our documents
