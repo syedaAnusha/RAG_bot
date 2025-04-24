@@ -1,26 +1,28 @@
-import { Chroma } from "@langchain/community/vectorstores/chroma";
-import { OllamaEmbeddings } from "@langchain/ollama";
+import { MemoryVectorStore } from "langchain/vectorstores/memory";
+import { HuggingFaceInferenceEmbeddings } from "@langchain/community/embeddings/hf";
 import { Document } from "@langchain/core/documents";
 
-// Initialize embeddings with Ollama
-const embeddings = new OllamaEmbeddings({
-  model: "mistral", // Using mistral model for embeddings
-  baseUrl: "http://localhost:11434", // Default Ollama server URL
+if (!process.env.HUGGINGFACE_API_KEY) {
+  throw new Error("Missing HUGGINGFACE_API_KEY environment variable");
+}
+
+// Initialize embeddings with Hugging Face
+const embeddings = new HuggingFaceInferenceEmbeddings({
+  apiKey: process.env.HUGGINGFACE_API_KEY,
+  model: "BAAI/bge-base-en-v1.5", // One of the best embedding models, optimized for RAG
 });
 
-// Collection name for our documents
-const COLLECTION_NAME = "rag_documents";
-
 // In-memory storage for vector store between requests
-let inMemoryStore: Chroma | null = null;
+let inMemoryStore: MemoryVectorStore | null = null;
 
 export async function getVectorStore(documents?: Document[]) {
   try {
     if (documents) {
       // If new documents provided, create a new store
-      inMemoryStore = await Chroma.fromDocuments(documents, embeddings, {
-        collectionName: COLLECTION_NAME,
-      });
+      inMemoryStore = await MemoryVectorStore.fromDocuments(
+        documents,
+        embeddings
+      );
       return inMemoryStore;
     }
 
@@ -30,9 +32,7 @@ export async function getVectorStore(documents?: Document[]) {
     }
 
     // If no in-memory store exists yet, create an empty one
-    inMemoryStore = await Chroma.fromDocuments([], embeddings, {
-      collectionName: COLLECTION_NAME,
-    });
+    inMemoryStore = await MemoryVectorStore.fromDocuments([], embeddings);
     return inMemoryStore;
   } catch (error) {
     console.error("Error with vector store:", error);

@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@huggingface/inference": "^2.8.1",
     "@langchain/community": "^0.3.41",
     "@langchain/ollama": "^0.2.0",
     "@langchain/openai": "^0.5.6",

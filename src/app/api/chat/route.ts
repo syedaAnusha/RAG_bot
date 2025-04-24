@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { NextRequest, NextResponse } from "next/server";
-import { ChatOllama } from "@langchain/ollama";
+import { HuggingFaceInference } from "@langchain/community/llms/hf";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { Document } from "@langchain/core/documents";
 import { getVectorStore } from "@/utils/vectorStore";
@@ -8,10 +8,15 @@ import { withMonitoring } from "@/utils/monitoring";
 import { createStuffDocumentsChain } from "langchain/chains/combine_documents";
 import { createRetrievalChain } from "langchain/chains/retrieval";
 
-// Initialize Ollama chat model
-const llm = new ChatOllama({
-  model: "mistral", // Using mistral model for chat
-  baseUrl: "http://localhost:11434", // Default Ollama server URL
+if (!process.env.HUGGINGFACE_API_KEY) {
+  throw new Error("Missing HUGGINGFACE_API_KEY environment variable");
+}
+
+// Initialize Hugging Face model
+const llm = new HuggingFaceInference({
+  apiKey: process.env.HUGGINGFACE_API_KEY,
+  model: "mistralai/Mixtral-8x7B-Instruct-v0.1", // Using Mixtral, one of the best open models
+  temperature: 0.7,
 });
 
 // Create a custom prompt template for better context injection
