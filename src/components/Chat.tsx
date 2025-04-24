@@ -1,163 +1,206 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState, useEffect, useRef } from "react";
-import { Message } from "@/types/chat";
-import { ChatHistoryManager } from "@/utils/chatHistory";
+"use client";
+
+import { useState } from "react";
+import { Bot, User, Loader2, BookOpen } from "lucide-react";
+import { ScrollArea } from "./ui/scroll-area";
+import { Button } from "./ui/button";
+import { Textarea } from "./ui/textarea";
+import { Card } from "./ui/card";
+import { Document, ChatMessage } from "@/types/chat";
+import { cn } from "@/lib/utils";
 
 interface ChatProps {
-  documents: any[];
+  documents: Document[];
 }
 
 export default function Chat({ documents }: ChatProps) {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const chatHistoryManager = useRef(new ChatHistoryManager());
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || loading) return;
 
-    const userMessage: Message = {
+    // Add user message
+    const userMessage: ChatMessage = {
+      id: Math.random().toString(36).substring(7),
       role: "user",
-      content: input.trim(),
-      timestamp: Date.now(),
+      content: input,
+      timestamp: new Date(),
     };
-
-    setInput("");
-    setError(null);
-    setLoading(true);
-    setIsProcessing(true);
-
-    chatHistoryManager.current.addMessage(userMessage);
     setMessages((prev) => [...prev, userMessage]);
+    setInput("");
+    setLoading(true);
 
     try {
+      // Make API call to /api/chat
       const response = await fetch("/api/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
-          message: userMessage.content,
+          message: input,
           documents,
-          history: chatHistoryManager.current.getRecentContext(),
         }),
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to get response");
+        throw new Error("Failed to get response");
       }
 
       const data = await response.json();
-      const assistantMessage: Message = {
-        role: "assistant",
-        content: data.response,
-        sources: data.sources,
-        timestamp: Date.now(),
-      };
 
-      chatHistoryManager.current.addMessage(assistantMessage);
+      // Add assistant message
+      const assistantMessage: ChatMessage = {
+        id: Math.random().toString(36).substring(7),
+        role: "assistant",
+        content: data.text || "I couldn't process your request.",
+        timestamp: new Date(),
+        sources: documents
+          .filter((d) => d.status === "ready")
+          .slice(0, 3)
+          .map((d) => d.id),
+      };
       setMessages((prev) => [...prev, assistantMessage]);
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error:", error);
-      setError(error.message);
+      // Add error message
+      const errorMessage: ChatMessage = {
+        id: Math.random().toString(36).substring(7),
+        role: "assistant",
+        content: "Sorry, I encountered an error processing your request.",
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setLoading(false);
-      setIsProcessing(false);
     }
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto p-4 bg-white rounded-lg shadow-md">
-      <div className="h-[400px] overflow-y-auto mb-4 p-4 border rounded-lg relative">
-        {messages.map((message, index) => (
-          <div key={index} className="mb-6 fade-in">
-            <div
-              className={`mb-2 p-3 rounded-lg ${
-                message.role === "user"
-                  ? "bg-blue-100 ml-auto max-w-[80%]"
-                  : "bg-gray-100 mr-auto max-w-[80%]"
-              }`}
-            >
-              <div className="text-sm text-gray-500 mb-1">
-                {message.role === "user" ? "You" : "Assistant"}
-                {message.timestamp && (
-                  <span className="ml-2">
-                    {new Date(message.timestamp).toLocaleTimeString()}
-                  </span>
-                )}
-              </div>
-              {message.content}
-            </div>
-            {message.sources && (
-              <div className="ml-4 text-sm text-gray-600">
-                <p className="font-semibold mb-1">Sources:</p>
-                {message.sources.map((source, idx) => (
-                  <div
-                    key={idx}
-                    className="mb-2 pl-2 border-l-2 border-gray-300"
-                  >
-                    <p className="font-medium">
-                      From: {source.metadata.fileName}
-                    </p>
-                    <p className="text-gray-500">{source.content}</p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        ))}
-        <div ref={messagesEndRef} />
-        {isProcessing && (
-          <div className="flex items-center justify-center gap-2 text-gray-500 my-4">
-            <div className="animate-bounce h-2 w-2 bg-gray-500 rounded-full"></div>
-            <div
-              className="animate-bounce h-2 w-2 bg-gray-500 rounded-full"
-              style={{ animationDelay: "0.2s" }}
-            ></div>
-            <div
-              className="animate-bounce h-2 w-2 bg-gray-500 rounded-full"
-              style={{ animationDelay: "0.4s" }}
-            ></div>
-          </div>
-        )}
-        {error && (
-          <div className="text-center text-red-500 mb-4 p-2 bg-red-50 rounded">
-            {error}
-          </div>
-        )}
+    <div className="flex flex-col h-full">
+      {/* Chat Header */}
+      <div className="flex items-center gap-3 p-4 border-b">
+        <div className="p-2 rounded-md bg-primary/10">
+          <Bot className="h-6 w-6 text-primary" />
+        </div>
+        <div>
+          <h2 className="text-xl font-semibold">RAG Assistant</h2>
+          <p className="text-sm text-muted-foreground">
+            Ask questions about your documents
+          </p>
+        </div>
       </div>
-      <form onSubmit={handleSubmit} className="flex gap-2">
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Ask a question about your documents..."
-          className="flex-1 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          disabled={loading}
-        />
-        <button
-          type="submit"
-          disabled={loading}
-          className={`px-4 py-2 rounded-lg text-white transition-colors ${
-            loading
-              ? "bg-gray-400 cursor-not-allowed"
-              : "bg-blue-500 hover:bg-blue-600"
-          }`}
-        >
-          {loading ? "Thinking..." : "Send"}
-        </button>
-      </form>
+
+      {/* Messages Area */}
+      <ScrollArea className="flex-1 p-4">
+        <div className="max-w-3xl mx-auto space-y-4">
+          {messages.length === 0 ? (
+            <div className="text-center">
+              <Card className="p-6">
+                <Bot className="h-12 w-12 mx-auto text-primary mb-4" />
+                <h3 className="text-lg font-semibold mb-2">
+                  Welcome to RAG Assistant
+                </h3>
+                <p className="text-muted-foreground mb-4">
+                  {documents.length > 0
+                    ? "Ask questions about your documents and I'll help you find answers."
+                    : "Upload some documents to get started."}
+                </p>
+                {documents.length === 0 && (
+                  <p className="text-sm text-muted-foreground">
+                    Supported formats: PDF, DOCX, TXT
+                  </p>
+                )}
+              </Card>
+            </div>
+          ) : (
+            messages.map((message) => (
+              <Card
+                key={message.id}
+                className={cn(
+                  "p-4",
+                  message.role === "user" ? "bg-muted" : "bg-primary/5"
+                )}
+              >
+                <div className="flex gap-3">
+                  <div className="flex-shrink-0">
+                    {message.role === "user" ? (
+                      <div className="p-2 rounded-md bg-muted-foreground/10">
+                        <User className="h-4 w-4 text-muted-foreground" />
+                      </div>
+                    ) : (
+                      <div className="p-2 rounded-md bg-primary/10">
+                        <Bot className="h-4 w-4 text-primary" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="font-medium">
+                        {message.role === "user" ? "You" : "Assistant"}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {message.timestamp.toLocaleTimeString()}
+                      </div>
+                    </div>
+                    <div className="text-sm whitespace-pre-wrap">
+                      {message.content}
+                    </div>
+                    {message.sources && message.sources.length > 0 && (
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground mt-2">
+                        <BookOpen className="h-3 w-3" />
+                        <span>
+                          Sources: {message.sources.length}{" "}
+                          {message.sources.length === 1
+                            ? "document"
+                            : "documents"}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </Card>
+            ))
+          )}
+          {loading && (
+            <div className="flex justify-center">
+              <Loader2 className="h-6 w-6 animate-spin text-primary" />
+            </div>
+          )}
+        </div>
+      </ScrollArea>
+
+      {/* Input Area */}
+      <div className="p-4 border-t">
+        <form onSubmit={handleSubmit} className="max-w-3xl mx-auto flex gap-2">
+          <Textarea
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder={
+              documents.length > 0
+                ? "Ask a question about your documents..."
+                : "Upload documents first to ask questions"
+            }
+            className="min-h-[60px] resize-none"
+            disabled={documents.length === 0}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                handleSubmit(e);
+              }
+            }}
+          />
+          <Button
+            type="submit"
+            disabled={documents.length === 0 || loading || !input.trim()}
+          >
+            Send
+          </Button>
+        </form>
+      </div>
     </div>
   );
 }
