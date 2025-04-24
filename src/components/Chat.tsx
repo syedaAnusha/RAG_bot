@@ -24,7 +24,7 @@ export default function Chat({ documents }: ChatProps) {
 
     // Add user message
     const userMessage: ChatMessage = {
-      id: Math.random().toString(36).substring(7),
+      id: Date.now().toString(36) + "-" + (messages.length + 1),
       role: "user",
       content: input,
       timestamp: new Date(),
@@ -66,18 +66,20 @@ export default function Chat({ documents }: ChatProps) {
 
       // Add assistant message
       const assistantMessage: ChatMessage = {
-        id: Math.random().toString(36).substring(7),
+        id: Date.now().toString(36) + "-" + (messages.length + 2),
         role: "assistant",
         content: data.text || "I couldn't process your request.",
         timestamp: new Date(),
-        sources: data.sources?.map((source: ChatAPISource) => source.metadata.id) || [],
+        sources:
+          data.sources?.map((source: ChatAPISource) => source.metadata.id) ||
+          [],
       };
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (error) {
       console.error("Error:", error);
       // Add error message
       const errorMessage: ChatMessage = {
-        id: Math.random().toString(36).substring(7),
+        id: Date.now().toString(36) + "-" + (messages.length + 2),
         role: "assistant",
         content: "Sorry, I encountered an error processing your request.",
         timestamp: new Date(),
@@ -152,7 +154,7 @@ export default function Chat({ documents }: ChatProps) {
                         {message.role === "user" ? "You" : "Assistant"}
                       </div>
                       <div className="text-xs text-muted-foreground">
-                        {message.timestamp.toLocaleTimeString()}
+                        {new Date(message.timestamp).toLocaleTimeString()}
                       </div>
                     </div>
                     <div className="text-sm whitespace-pre-wrap">
