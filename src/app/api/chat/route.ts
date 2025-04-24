@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from "next/server";
-import { OpenAI } from "@langchain/openai";
+import { ChatOpenAI } from "@langchain/openai";
 import { RetrievalQAChain } from "langchain/chains";
 import { PromptTemplate } from "@langchain/core/prompts";
 import { getVectorStore } from "@/utils/vectorStore";
@@ -13,30 +12,24 @@ if (!process.env.OPENAI_API_KEY) {
   throw new Error("Missing OPENAI_API_KEY environment variable");
 }
 
-const llm = new OpenAI({
+// Initialize ChatOpenAI with API key
+const llm = new ChatOpenAI({
   modelName: "gpt-3.5-turbo",
   temperature: 0.7,
   openAIApiKey: process.env.OPENAI_API_KEY,
 });
 
-// Enhanced prompt template that includes chat history
+// Create a custom prompt template for better context injection
 const promptTemplate = PromptTemplate.fromTemplate(`
 You are a helpful assistant answering questions based on the provided documents.
 Use the following pieces of context to answer the question at the end.
 If you don't know the answer, just say that you don't know, don't try to make up an answer.
 
-Previous conversation context:
-{history}
+Context: {context}
 
-Context from documents:
-{context}
+Question: {question}
 
-Current question: {question}
-
-Please provide a clear and concise answer based on the context and previous conversation.
-If you're referring to specific parts of the documents, mention them in your answer.
-
-Answer:`);
+Answer: `);
 
 export async function POST(req: NextRequest) {
   return withMonitoring(req, "/api/chat", async () => {
@@ -75,24 +68,22 @@ export async function POST(req: NextRequest) {
       const chain = RetrievalQAChain.fromLLM(
         llm,
         vectorStore.asRetriever({
-          searchKwargs: { fetchK: 3 },
+          k: 3, // Number of documents to retrieve
         }),
         {
           prompt: promptTemplate,
-          inputKey: "question",
           returnSourceDocuments: true,
         }
       );
 
-      // Get the response with chat history context
+      // Get the response
       const response = await chain.call({
         query: message,
-        history: history || "No previous context available.",
       });
 
       return NextResponse.json({
         response: response.text,
-        sources: response.sourceDocuments?.map((doc: any) => ({
+        sources: response.sourceDocuments?.map((doc: Document) => ({
           content: doc.pageContent.substring(0, 150) + "...",
           metadata: doc.metadata,
         })),
