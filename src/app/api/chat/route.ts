@@ -19,17 +19,24 @@ const llm = new OpenAI({
   openAIApiKey: process.env.OPENAI_API_KEY,
 });
 
-// Create a custom prompt template for better context injection
+// Enhanced prompt template that includes chat history
 const promptTemplate = PromptTemplate.fromTemplate(`
 You are a helpful assistant answering questions based on the provided documents.
 Use the following pieces of context to answer the question at the end.
 If you don't know the answer, just say that you don't know, don't try to make up an answer.
 
-Context: {context}
+Previous conversation context:
+{history}
 
-Question: {question}
+Context from documents:
+{context}
 
-Answer: `);
+Current question: {question}
+
+Please provide a clear and concise answer based on the context and previous conversation.
+If you're referring to specific parts of the documents, mention them in your answer.
+
+Answer:`);
 
 export async function POST(req: NextRequest) {
   return withMonitoring(req, "/api/chat", async () => {
@@ -38,7 +45,7 @@ export async function POST(req: NextRequest) {
     if (rateLimitResponse) return rateLimitResponse;
 
     try {
-      const { message, documents } = await req.json();
+      const { message, documents, history = "" } = await req.json();
 
       if (!message) {
         return NextResponse.json(
@@ -56,7 +63,7 @@ export async function POST(req: NextRequest) {
         // Try to load existing store
         try {
           vectorStore = await getVectorStore();
-        } catch (error: any) {
+        } catch (error) {
           return NextResponse.json(
             { error: "No documents available to search through" },
             { status: 400 }
@@ -72,16 +79,17 @@ export async function POST(req: NextRequest) {
         }),
         {
           prompt: promptTemplate,
+          inputKey: "question",
           returnSourceDocuments: true,
         }
       );
 
-      // Get the response
+      // Get the response with chat history context
       const response = await chain.call({
         query: message,
+        history: history || "No previous context available.",
       });
 
-      // Return response with source information
       return NextResponse.json({
         response: response.text,
         sources: response.sourceDocuments?.map((doc: any) => ({
