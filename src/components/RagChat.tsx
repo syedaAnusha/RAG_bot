@@ -31,9 +31,11 @@ export default function RagChat() {
           <main
             className={cn(
               "flex-1 relative",
-              // Mobile: partial sidebar (70px) when collapsed, full width (280px) when expanded
-              sidebarCollapsed ? "ml-[70px]" : "ml-[280px]",
-              "transition-[margin] duration-300 ease-in-out"
+              // Desktop: adjust margin based on sidebar state
+              "md:transition-[margin] md:duration-300 md:ease-in-out",
+              sidebarCollapsed ? "md:ml-[10px]" : "md:ml-[20px]",
+              // Mobile: don't adjust margin, let sidebar overlay
+              "ml-[70px]"
             )}
           >
             <Chat documents={documents} />

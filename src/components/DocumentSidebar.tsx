@@ -170,7 +170,12 @@ export default function DocumentSidebar({
       className={cn(
         "fixed inset-y-0 left-0 z-[50] flex h-screen flex-col transition-all duration-300 ease-in-out",
         darkMode ? "bg-gray-900 text-white" : "bg-white text-gray-900",
-        sidebarCollapsed ? "w-[70px]" : "w-[280px]"
+        // Mobile: start with mini width, expand with absolute positioning
+        "w-[70px] absolute",
+        !sidebarCollapsed && "w-[280px]",
+        // Desktop: relative positioning with proper widths
+        "md:relative md:w-auto",
+        sidebarCollapsed ? "md:w-[70px]" : "md:w-[280px]"
       )}
     >
       {/* Sidebar Header */}
