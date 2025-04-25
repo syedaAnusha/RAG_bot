@@ -32,7 +32,7 @@ export default function RagChat() {
         />
         <div
           className={`flex-1 flex flex-col overflow-hidden ${
-            sidebarCollapsed ? "md:ml-[70px]" : "md:ml-[280px]"
+            sidebarCollapsed ? "md:ml-[70px]" : "md:ml-[20px]"
           }`}
         >
           <Chat documents={documents} />

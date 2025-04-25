@@ -1,7 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { Bot, User, Loader2, BookOpen } from "lucide-react";
+import {
+  Bot,
+  User,
+  Loader2,
+  BookOpen,
+  MessageSquare,
+  Upload,
+  Send,
+} from "lucide-react";
 import { ScrollArea } from "./ui/scroll-area";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
@@ -94,11 +102,11 @@ export default function Chat({ documents }: ChatProps) {
     <div className="flex flex-col h-full">
       {/* Chat Header */}
       <div className="flex items-center gap-3 p-4 border-b">
-        <div className="p-2 rounded-md bg-primary/10">
-          <Bot className="h-6 w-6 text-primary" />
+        <div className="p-2 rounded-md bg-[#1E1C3C]">
+          <Bot className="h-6 w-6 text-[#818CF8]" />
         </div>
         <div>
-          <h2 className="text-xl font-semibold">RAG Assistant</h2>
+          <h2 className="text-xl font-semibold">DocuMind</h2>
           <p className="text-sm text-muted-foreground">
             Ask questions about your documents
           </p>
@@ -107,23 +115,72 @@ export default function Chat({ documents }: ChatProps) {
 
       {/* Messages Area */}
       <ScrollArea className="flex-1 p-4">
-        <div className="max-w-3xl mx-auto space-y-4">
+        <div className="max-w-4xl mx-auto space-y-4">
           {messages.length === 0 ? (
             <div className="text-center">
-              <Card className="p-6">
-                <Bot className="h-12 w-12 mx-auto text-primary mb-4" />
-                <h3 className="text-lg font-semibold mb-2">
-                  Welcome to RAG Assistant
-                </h3>
-                <p className="text-muted-foreground mb-4">
+              <Card className="p-6 bg-[#191E25] gap-[0.5rem]">
+                <Bot className="h-12 w-12 mx-auto text-[#818CF8]" />
+                <h3 className="text-lg font-semibold">Welcome to DocuMind</h3>
+                <p className="text-muted-foreground">
                   {documents.length > 0
                     ? "Ask questions about your documents and I'll help you find answers."
-                    : "Upload some documents to get started."}
+                    : "Ask questions about your documents and get accurate answers powered by AI."}
                 </p>
                 {documents.length === 0 && (
-                  <p className="text-sm text-muted-foreground">
-                    Supported formats: PDF, DOCX, TXT
-                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full mt-5">
+                    <Card className={cn("p-4", "bg-[#1F2937]")}>
+                      <div className="flex flex-col items-center text-center">
+                        <div
+                          className={cn(
+                            "rounded-full p-2 mb-2",
+                            "bg-blue-900/20"
+                          )}
+                        >
+                          <BookOpen className="h-5 w-5 text-blue-500" />
+                        </div>
+                        <h3 className="font-medium mb-1">
+                          1. Browse Documents
+                        </h3>
+                        <p className="text-xs text-gray-500">
+                          View and manage your document collection
+                        </p>
+                      </div>
+                    </Card>
+
+                    <Card className={cn("p-4", "bg-[#1F2937]")}>
+                      <div className="flex flex-col items-center text-center">
+                        <div
+                          className={cn(
+                            "rounded-full p-2 mb-2",
+                            "bg-green-900/20"
+                          )}
+                        >
+                          <Upload className="h-5 w-5 text-green-500" />
+                        </div>
+                        <h3 className="font-medium mb-1">2. Upload Files</h3>
+                        <p className="text-xs text-gray-500">
+                          Upload PDFs, TXT, or DOCX files
+                        </p>
+                      </div>
+                    </Card>
+
+                    <Card className={cn("p-4", "bg-[#1F2937]")}>
+                      <div className="flex flex-col items-center text-center">
+                        <div
+                          className={cn(
+                            "rounded-full p-2 mb-2",
+                            "bg-purple-900/20"
+                          )}
+                        >
+                          <MessageSquare className="h-5 w-5 text-purple-500" />
+                        </div>
+                        <h3 className="font-medium mb-1">3. Ask Questions</h3>
+                        <p className="text-xs text-gray-500">
+                          Get answers from your documents
+                        </p>
+                      </div>
+                    </Card>
+                  </div>
                 )}
               </Card>
             </div>
@@ -195,7 +252,7 @@ export default function Chat({ documents }: ChatProps) {
                 ? "Ask a question about your documents..."
                 : "Upload documents first to ask questions"
             }
-            className="min-h-[60px] resize-none"
+            className="min-h-[40px] resize-none bg-[#191E25]"
             disabled={documents.length === 0}
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
@@ -206,9 +263,12 @@ export default function Chat({ documents }: ChatProps) {
           />
           <Button
             type="submit"
+            size="icon"
+            className="bg-indigo-600 hover:bg-indigo-700"
             disabled={documents.length === 0 || loading || !input.trim()}
           >
-            Send
+            <Send className="h-4 w-4 text-white" />
+            <span className="sr-only">Send message</span>
           </Button>
         </form>
       </div>

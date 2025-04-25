@@ -14,6 +14,7 @@ import {
   FolderOpen,
   //   Search,
   FileText,
+  Zap,
   File,
   FileIcon,
   Trash2,
@@ -23,7 +24,6 @@ import {
 } from "lucide-react";
 import { Document } from "@/types/chat";
 import { Badge } from "./ui/badge";
-import { Progress } from "./ui/progress";
 import { cn } from "@/lib/utils";
 
 interface DocumentSidebarProps {
@@ -206,7 +206,22 @@ export default function DocumentSidebar({
         {/* Sidebar Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800">
           {!sidebarCollapsed && (
-            <h1 className="font-bold text-lg">Documents</h1>
+            <div className="flex items-center gap-2">
+              <div
+                className={cn(
+                  "p-1 rounded-md",
+                  darkMode ? "bg-indigo-600" : "bg-indigo-100"
+                )}
+              >
+                <Zap
+                  className={cn(
+                    "h-5 w-5",
+                    darkMode ? "text-white" : "text-indigo-600"
+                  )}
+                />
+              </div>
+              <h1 className="font-bold text-lg">DocuMind</h1>
+            </div>
           )}
           <Button
             variant="ghost"
@@ -293,12 +308,6 @@ export default function DocumentSidebar({
                             <p className="text-xs text-gray-500 mt-1">
                               {formatFileSize(doc.size)}
                             </p>
-                            {doc.status === "processing" && doc.progress && (
-                              <Progress
-                                value={doc.progress}
-                                className="h-1 mt-2"
-                              />
-                            )}
                           </div>
                         </div>
                         <div className="flex items-center justify-end gap-2 mt-2">
@@ -326,7 +335,7 @@ export default function DocumentSidebar({
               </div>
             ) : (
               <div className="text-center py-8">
-                <FolderOpen className="h-12 w-12 mx-auto text-gray-400 mb-3" />
+                <FolderOpen className="h-10 w-10 mx-auto mb-3 text-[#818CF8]" />
                 <p className="text-gray-500">No documents uploaded yet</p>
               </div>
             )}
