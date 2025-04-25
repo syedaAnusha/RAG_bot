@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 export default function RagChat() {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [darkMode] = useState(true);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
 
   return (
     <ThemeProvider
