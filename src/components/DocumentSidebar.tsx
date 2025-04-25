@@ -258,8 +258,8 @@ export default function DocumentSidebar({
                       <div className="flex items-start gap-3">
                         {getFileIcon(doc.type)}
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between">
-                            <h4 className="font-medium text-sm truncate">
+                          <div className="flex items-center gap-2">
+                            <h4 className="font-medium text-sm truncate max-w-[50px]">
                               {doc.name}
                             </h4>
                             <Badge
@@ -267,7 +267,7 @@ export default function DocumentSidebar({
                                 doc.status === "ready" ? "default" : "outline"
                               }
                               className={cn(
-                                "ml-2",
+                                "flex-shrink-0",
                                 doc.status === "processing" &&
                                   "bg-yellow-500/10 text-yellow-500",
                                 doc.status === "ready" &&
@@ -279,7 +279,7 @@ export default function DocumentSidebar({
                               {doc.status}
                             </Badge>
                           </div>
-                          <p className="text-xs text-gray-500 mt-1">
+                          <p className="text-xs text-gray-500 mt-1 truncate">
                             {formatFileSize(doc.size)}
                           </p>
                         </div>
