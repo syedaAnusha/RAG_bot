@@ -43,10 +43,10 @@ export default function DocumentSidebar({
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
       for (const file of acceptedFiles) {
-        if (file.size > 200 * 1024 * 1024) {
+        if (file.size > 10 * 1024 * 1024) {
           toast({
             title: "File too large",
-            description: `${file.name} exceeds the 200MB limit.`,
+            description: `${file.name} exceeds the 10MB limit.`,
             duration: 3000,
           });
           continue;
@@ -232,7 +232,7 @@ export default function DocumentSidebar({
                   : "Drag & drop files here, or click to select"}
               </p>
               <p className="text-xs text-gray-400 mt-1">
-                Supported: PDF, DOCX, TXT (max 200MB)
+                Supported: PDF, DOCX, TXT (max 10MB)
               </p>
             </div>
           )}
@@ -259,7 +259,7 @@ export default function DocumentSidebar({
                         {getFileIcon(doc.type)}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <h4 className="font-medium text-sm truncate max-w-[50px]">
+                            <h4 className="font-medium text-sm truncate max-w-[100px]">
                               {doc.name}
                             </h4>
                             <Badge
@@ -269,11 +269,11 @@ export default function DocumentSidebar({
                               className={cn(
                                 "flex-shrink-0",
                                 doc.status === "processing" &&
-                                  "bg-yellow-500/10 text-yellow-500",
+                                  "bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20",
                                 doc.status === "ready" &&
-                                  "bg-green-500/10 text-green-500",
+                                  "bg-green-500/10 text-green-500 hover:bg-green-500/20",
                                 doc.status === "error" &&
-                                  "bg-red-500/10 text-red-500"
+                                  "bg-red-500/10 text-red-500 hover:bg-red-500/20"
                               )}
                             >
                               {doc.status}
