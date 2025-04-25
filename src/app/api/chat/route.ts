@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { HuggingFaceInference } from "@langchain/community/llms/hf";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { Document } from "@langchain/core/documents";
 import { getVectorStore } from "@/utils/vectorStore";
 import { withMonitoring } from "@/utils/monitoring";
 import { createStuffDocumentsChain } from "langchain/chains/combine_documents";
+import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { createRetrievalChain } from "langchain/chains/retrieval";
 
 interface DocumentInput {
@@ -17,28 +17,30 @@ interface DocumentInput {
   };
 }
 
-if (!process.env.HUGGINGFACE_API_KEY) {
-  throw new Error("Missing HUGGINGFACE_API_KEY environment variable");
+if (!process.env.GOOGLE_API_KEY) {
+  throw new Error("Missing GOOGLE_API_KEY environment variable");
 }
 
-// Initialize Hugging Face model
-const llm = new HuggingFaceInference({
-  apiKey: process.env.HUGGINGFACE_API_KEY,
-  model: "mistralai/Mixtral-8x7B-Instruct-v0.1",
+// Initialize the model with better configuration
+const llm = new ChatGoogleGenerativeAI({
+  model: "gemini-2.0-flash",
+  // maxOutputTokens: 2048,
   temperature: 0.7,
+  apiKey: process.env.GOOGLE_API_KEY,
 });
 
-// Create a custom prompt template
+// Create a custom prompt template with better context handling
 const prompt = ChatPromptTemplate.fromTemplate(`
 You are a helpful assistant answering questions based on the provided documents.
-Use the following pieces of context to answer the question at the end.
-If you don't know the answer, just say that you don't know, don't try to make up an answer.
+The following context contains relevant information to answer the user's question.
+Be concise and accurate, and only use information from the provided context.
+If the context doesn't contain enough information to answer the question, say so.
 
-Context from documents: {context}
+Context:
+{context}
 
-Question: {input}
-
-Answer: `);
+User Question: {input}
+`);
 
 export async function POST(req: NextRequest) {
   return withMonitoring(req, "/api/chat", async () => {

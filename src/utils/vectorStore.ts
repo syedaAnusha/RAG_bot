@@ -1,15 +1,20 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { MemoryVectorStore } from "langchain/vectorstores/memory";
-import { HuggingFaceInferenceEmbeddings } from "@langchain/community/embeddings/hf";
 import { Document } from "@langchain/core/documents";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
 
-if (!process.env.HUGGINGFACE_API_KEY) {
-  throw new Error("Missing HUGGINGFACE_API_KEY environment variable");
+if (!process.env.GOOGLE_API_KEY) {
+  throw new Error("Missing GOOGLE_API_KEY environment variable");
 }
 
-// Initialize embeddings with Hugging Face
-const embeddings = new HuggingFaceInferenceEmbeddings({
-  apiKey: process.env.HUGGINGFACE_API_KEY,
-  model: "BAAI/bge-base-en-v1.5", // One of the best embedding models, optimized for RAG
+// Initialize the Google Generative AI client
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
+
+// Initialize embeddings with Google Generative AI
+const embeddings = new GoogleGenerativeAIEmbeddings({
+  modelName: "embedding-001", // Google's text embedding model
+  apiKey: process.env.GOOGLE_API_KEY,
 });
 
 // In-memory storage for vector store between requests
