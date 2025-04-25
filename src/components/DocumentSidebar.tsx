@@ -181,7 +181,7 @@ export default function DocumentSidebar({
         <Button
           variant="outline"
           size="icon"
-          className="rounded-full"
+          className="rounded-full bg-background"
           onClick={() => setShowMobileSidebar(!showMobileSidebar)}
         >
           {showMobileSidebar ? (
@@ -192,10 +192,18 @@ export default function DocumentSidebar({
         </Button>
       </div>
 
+      {/* Mobile Backdrop */}
+      {showMobileSidebar && (
+        <div
+          className="fixed inset-0 bg-black/50 z-30 md:hidden"
+          onClick={() => setShowMobileSidebar(false)}
+        />
+      )}
+
       {/* Sidebar */}
       <div
         className={cn(
-          "fixed inset-y-0 left-0 z-40 flex flex-col transition-all duration-300 ease-in-out md:relative",
+          "fixed inset-y-0 left-0 z-40 flex h-screen flex-col transition-all duration-300 ease-in-out md:relative md:h-auto",
           darkMode ? "bg-gray-900 text-white" : "bg-white text-gray-900",
           sidebarCollapsed ? "w-[70px]" : "w-[280px]",
           showMobileSidebar
@@ -204,7 +212,7 @@ export default function DocumentSidebar({
         )}
       >
         {/* Sidebar Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800">
+        <div className="flex h-16 items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800 shrink-0">
           {!sidebarCollapsed && (
             <div className="flex items-center gap-2">
               <div
@@ -238,7 +246,7 @@ export default function DocumentSidebar({
         </div>
 
         {/* Document List */}
-        <ScrollArea className="flex-1">
+        <ScrollArea className="flex-1 h-[calc(100vh-10rem)]">
           <div className="p-4 space-y-4">
             {!sidebarCollapsed && (
               <div
@@ -269,7 +277,7 @@ export default function DocumentSidebar({
                   <div
                     key={doc.id}
                     className={cn(
-                      "p-3 rounded-lg border",
+                      "p-3 rounded-lg border transition-colors",
                       darkMode
                         ? "border-gray-800 hover:bg-gray-800/50"
                         : "border-gray-200 hover:bg-gray-50"
@@ -344,7 +352,7 @@ export default function DocumentSidebar({
 
         {/* Sidebar Footer */}
         {!sidebarCollapsed && (
-          <div className="p-4 border-t border-gray-200 dark:border-gray-800">
+          <div className="shrink-0 p-4 border-t border-gray-200 dark:border-gray-800">
             <Button className="w-full" {...getRootProps()}>
               <Upload className="h-4 w-4 mr-2" />
               Upload Document

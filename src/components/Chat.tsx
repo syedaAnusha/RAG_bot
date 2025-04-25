@@ -99,9 +99,9 @@ export default function Chat({ documents }: ChatProps) {
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full relative">
       {/* Chat Header */}
-      <div className="flex items-center gap-3 p-4 border-b">
+      <div className="flex items-center gap-3 p-4 border-b sticky top-0 z-10 bg-background">
         <div className="p-2 rounded-md bg-[#1E1C3C]">
           <Bot className="h-6 w-6 text-[#818CF8]" />
         </div>
@@ -114,7 +114,7 @@ export default function Chat({ documents }: ChatProps) {
       </div>
 
       {/* Messages Area */}
-      <ScrollArea className="flex-1 p-4">
+      <ScrollArea className="flex-1 p-4 h-[calc(100vh-13rem)]">
         <div className="max-w-4xl mx-auto space-y-4">
           {messages.length === 0 ? (
             <div className="text-center">
@@ -242,8 +242,8 @@ export default function Chat({ documents }: ChatProps) {
       </ScrollArea>
 
       {/* Input Area */}
-      <div className="p-4 border-t">
-        <form onSubmit={handleSubmit} className="max-w-3xl mx-auto flex gap-2">
+      <div className="p-4 border-t sticky bottom-0 bg-background">
+        <form onSubmit={handleSubmit} className="max-w-4xl mx-auto flex gap-2">
           <Textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -252,7 +252,7 @@ export default function Chat({ documents }: ChatProps) {
                 ? "Ask a question about your documents..."
                 : "Upload documents first to ask questions"
             }
-            className="min-h-[40px] resize-none bg-[#191E25]"
+            className="min-h-[40px] max-h-[200px] resize-none bg-[#191E25]"
             disabled={documents.length === 0}
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
@@ -264,7 +264,7 @@ export default function Chat({ documents }: ChatProps) {
           <Button
             type="submit"
             size="icon"
-            className="bg-indigo-600 hover:bg-indigo-700"
+            className="bg-indigo-600 hover:bg-indigo-700 flex-shrink-0"
             disabled={documents.length === 0 || loading || !input.trim()}
           >
             <Send className="h-4 w-4 text-white" />

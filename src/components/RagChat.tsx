@@ -6,6 +6,7 @@ import { ThemeProvider } from "next-themes";
 import Chat from "./Chat";
 import DocumentSidebar from "./DocumentSidebar";
 import { Document } from "@/types/chat";
+import { cn } from "@/lib/utils";
 
 export default function RagChat() {
   const [documents, setDocuments] = useState<Document[]>([]);
@@ -19,26 +20,29 @@ export default function RagChat() {
       defaultTheme={darkMode ? "dark" : "light"}
       enableSystem={false}
     >
-      <div className={`flex h-screen ${darkMode ? "dark" : ""}`}>
-        <DocumentSidebar
-          documents={documents}
-          setDocuments={setDocuments}
-          darkMode={darkMode}
-          //   setDarkMode={setDarkMode}
-          sidebarCollapsed={sidebarCollapsed}
-          setSidebarCollapsed={setSidebarCollapsed}
-          showMobileSidebar={showMobileSidebar}
-          setShowMobileSidebar={setShowMobileSidebar}
-        />
-        <div
-          className={`flex-1 flex flex-col overflow-hidden ${
-            sidebarCollapsed ? "md:ml-[70px]" : "md:ml-[20px]"
-          }`}
-        >
-          <Chat documents={documents} />
+      <div className="h-screen w-screen overflow-hidden bg-background">
+        <div className="relative flex h-full">
+          <DocumentSidebar
+            documents={documents}
+            setDocuments={setDocuments}
+            darkMode={darkMode}
+            sidebarCollapsed={sidebarCollapsed}
+            setSidebarCollapsed={setSidebarCollapsed}
+            showMobileSidebar={showMobileSidebar}
+            setShowMobileSidebar={setShowMobileSidebar}
+          />
+          <main
+            className={cn(
+              "flex-1 relative",
+              sidebarCollapsed ? "md:ml-[70px]" : "md:ml-[20px]",
+              "transition-[margin] duration-300 ease-in-out"
+            )}
+          >
+            <Chat documents={documents} />
+          </main>
         </div>
+        <Toaster />
       </div>
-      <Toaster />
     </ThemeProvider>
   );
 }
