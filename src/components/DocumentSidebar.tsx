@@ -4,23 +4,18 @@ import { useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import { Button } from "./ui/button";
 import { ScrollArea } from "./ui/scroll-area";
-// import { Input } from "./ui/input";
 import { useToast } from "./ui/use-toast";
 
 import {
   ChevronLeft,
-  ChevronRight,
   Upload,
   FolderOpen,
-  //   Search,
   FileText,
   Zap,
   File,
   FileIcon,
   Trash2,
   Eye,
-  X,
-  Menu,
 } from "lucide-react";
 import { Document } from "@/types/chat";
 import { Badge } from "./ui/badge";
@@ -34,8 +29,6 @@ interface DocumentSidebarProps {
   darkMode: boolean;
   sidebarCollapsed: boolean;
   setSidebarCollapsed: (collapsed: boolean) => void;
-  showMobileSidebar: boolean;
-  setShowMobileSidebar: (show: boolean) => void;
 }
 
 export default function DocumentSidebar({
@@ -44,8 +37,6 @@ export default function DocumentSidebar({
   darkMode,
   sidebarCollapsed,
   setSidebarCollapsed,
-  showMobileSidebar,
-  setShowMobileSidebar,
 }: DocumentSidebarProps) {
   const { toast } = useToast();
 
@@ -175,191 +166,162 @@ export default function DocumentSidebar({
   };
 
   return (
-    <>
-      {/* Mobile Sidebar Toggle */}
-      <div className="md:hidden fixed top-4 left-4 z-50">
+    <div
+      className={cn(
+        "fixed inset-y-0 left-0 z-[50] flex h-screen flex-col transition-all duration-300 ease-in-out",
+        darkMode ? "bg-gray-900 text-white" : "bg-white text-gray-900",
+        sidebarCollapsed ? "w-[70px]" : "w-[280px]"
+      )}
+    >
+      {/* Sidebar Header */}
+      <div className="flex h-16 items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800 shrink-0">
+        {!sidebarCollapsed && (
+          <div className="flex items-center gap-2">
+            <div
+              className={cn(
+                "p-1 rounded-md",
+                darkMode ? "bg-indigo-600" : "bg-indigo-100"
+              )}
+            >
+              <Zap
+                className={cn(
+                  "h-5 w-5",
+                  darkMode ? "text-white" : "text-indigo-600"
+                )}
+              />
+            </div>
+            <h1 className="font-bold text-lg">DocuMind</h1>
+          </div>
+        )}
         <Button
-          variant="outline"
+          variant="ghost"
           size="icon"
-          className="rounded-full bg-background"
-          onClick={() => setShowMobileSidebar(!showMobileSidebar)}
-        >
-          {showMobileSidebar ? (
-            <X className="h-5 w-5" />
-          ) : (
-            <Menu className="h-5 w-5" />
+          className={cn(
+            "transition-all duration-300",
+            sidebarCollapsed ? "ml-auto rotate-180" : "ml-auto"
           )}
+          onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+        >
+          <ChevronLeft className="h-5 w-5" />
         </Button>
       </div>
 
-      {/* Mobile Backdrop */}
-      {showMobileSidebar && (
-        <div
-          className="fixed inset-0 bg-black/50 z-30 md:hidden"
-          onClick={() => setShowMobileSidebar(false)}
-        />
-      )}
-
-      {/* Sidebar */}
-      <div
-        className={cn(
-          "fixed inset-y-0 left-0 z-40 flex h-screen flex-col transition-all duration-300 ease-in-out md:relative md:h-auto",
-          darkMode ? "bg-gray-900 text-white" : "bg-white text-gray-900",
-          sidebarCollapsed ? "w-[70px]" : "w-[280px]",
-          showMobileSidebar
-            ? "translate-x-0"
-            : "-translate-x-full md:translate-x-0"
-        )}
-      >
-        {/* Sidebar Header */}
-        <div className="flex h-16 items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800 shrink-0">
+      {/* Document List */}
+      <ScrollArea className="flex-1 h-[calc(100vh-10rem)]">
+        <div className="p-4 space-y-4">
           {!sidebarCollapsed && (
-            <div className="flex items-center gap-2">
-              <div
-                className={cn(
-                  "p-1 rounded-md",
-                  darkMode ? "bg-indigo-600" : "bg-indigo-100"
-                )}
-              >
-                <Zap
-                  className={cn(
-                    "h-5 w-5",
-                    darkMode ? "text-white" : "text-indigo-600"
-                  )}
-                />
-              </div>
-              <h1 className="font-bold text-lg">DocuMind</h1>
+            <div
+              {...getRootProps()}
+              className={cn(
+                "border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors",
+                isDragActive
+                  ? "border-blue-500 bg-blue-50 dark:border-blue-400 dark:bg-blue-900/20"
+                  : "border-gray-300 dark:border-gray-700"
+              )}
+            >
+              <input {...getInputProps()} />
+              <Upload className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+              <p className="text-sm text-gray-500">
+                {isDragActive
+                  ? "Drop the files here..."
+                  : "Drag & drop files here, or click to select"}
+              </p>
+              <p className="text-xs text-gray-400 mt-1">
+                Supported: PDF, DOCX, TXT (max 200MB)
+              </p>
             </div>
           )}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="ml-auto"
-            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-          >
-            {sidebarCollapsed ? (
-              <ChevronRight className="h-5 w-5" />
-            ) : (
-              <ChevronLeft className="h-5 w-5" />
-            )}
+
+          {documents.length > 0 ? (
+            <div className="space-y-2">
+              {documents.map((doc) => (
+                <div
+                  key={doc.id}
+                  className={cn(
+                    "p-3 rounded-lg border transition-colors",
+                    darkMode
+                      ? "border-gray-800 hover:bg-gray-800/50"
+                      : "border-gray-200 hover:bg-gray-50"
+                  )}
+                >
+                  {sidebarCollapsed ? (
+                    <div className="flex justify-center">
+                      {getFileIcon(doc.type)}
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex items-start gap-3">
+                        {getFileIcon(doc.type)}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-medium text-sm truncate">
+                              {doc.name}
+                            </h4>
+                            <Badge
+                              variant={
+                                doc.status === "ready" ? "default" : "outline"
+                              }
+                              className={cn(
+                                "ml-2",
+                                doc.status === "processing" &&
+                                  "bg-yellow-500/10 text-yellow-500",
+                                doc.status === "ready" &&
+                                  "bg-green-500/10 text-green-500",
+                                doc.status === "error" &&
+                                  "bg-red-500/10 text-red-500"
+                              )}
+                            >
+                              {doc.status}
+                            </Badge>
+                          </div>
+                          <p className="text-xs text-gray-500 mt-1">
+                            {formatFileSize(doc.size)}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-end gap-2 mt-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            // Preview functionality
+                          }}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeDocument(doc.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <FolderOpen className="h-8 w-8 mx-auto mb-3 text-[#818CF8]" />
+              <p className={cn("text-gray-500", sidebarCollapsed && "hidden")}>
+                No documents uploaded yet
+              </p>
+            </div>
+          )}
+        </div>
+      </ScrollArea>
+
+      {/* Sidebar Footer */}
+      {!sidebarCollapsed && (
+        <div className="shrink-0 p-4 border-t border-gray-200 dark:border-gray-800">
+          <Button className="w-full" {...getRootProps()}>
+            <Upload className="h-4 w-4 mr-2" />
+            Upload Document
           </Button>
         </div>
-
-        {/* Document List */}
-        <ScrollArea className="flex-1 h-[calc(100vh-10rem)]">
-          <div className="p-4 space-y-4">
-            {!sidebarCollapsed && (
-              <div
-                {...getRootProps()}
-                className={cn(
-                  "border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors",
-                  isDragActive
-                    ? "border-blue-500 bg-blue-50 dark:border-blue-400 dark:bg-blue-900/20"
-                    : "border-gray-300 dark:border-gray-700"
-                )}
-              >
-                <input {...getInputProps()} />
-                <Upload className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                <p className="text-sm text-gray-500">
-                  {isDragActive
-                    ? "Drop the files here..."
-                    : "Drag & drop files here, or click to select"}
-                </p>
-                <p className="text-xs text-gray-400 mt-1">
-                  Supported: PDF, DOCX, TXT (max 200MB)
-                </p>
-              </div>
-            )}
-
-            {documents.length > 0 ? (
-              <div className="space-y-2">
-                {documents.map((doc) => (
-                  <div
-                    key={doc.id}
-                    className={cn(
-                      "p-3 rounded-lg border transition-colors",
-                      darkMode
-                        ? "border-gray-800 hover:bg-gray-800/50"
-                        : "border-gray-200 hover:bg-gray-50"
-                    )}
-                  >
-                    {sidebarCollapsed ? (
-                      <div className="flex justify-center">
-                        {getFileIcon(doc.type)}
-                      </div>
-                    ) : (
-                      <>
-                        <div className="flex items-start gap-3">
-                          {getFileIcon(doc.type)}
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between">
-                              <h4 className="font-medium text-sm truncate">
-                                {doc.name}
-                              </h4>
-                              <Badge
-                                variant={
-                                  doc.status === "ready" ? "default" : "outline"
-                                }
-                                className={cn(
-                                  "ml-2",
-                                  doc.status === "processing" &&
-                                    "bg-yellow-500/10 text-yellow-500",
-                                  doc.status === "ready" &&
-                                    "bg-green-500/10 text-green-500",
-                                  doc.status === "error" &&
-                                    "bg-red-500/10 text-red-500"
-                                )}
-                              >
-                                {doc.status}
-                              </Badge>
-                            </div>
-                            <p className="text-xs text-gray-500 mt-1">
-                              {formatFileSize(doc.size)}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center justify-end gap-2 mt-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              // Preview functionality
-                            }}
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeDocument(doc.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <FolderOpen className="h-10 w-10 mx-auto mb-3 text-[#818CF8]" />
-                <p className="text-gray-500">No documents uploaded yet</p>
-              </div>
-            )}
-          </div>
-        </ScrollArea>
-
-        {/* Sidebar Footer */}
-        {!sidebarCollapsed && (
-          <div className="shrink-0 p-4 border-t border-gray-200 dark:border-gray-800">
-            <Button className="w-full" {...getRootProps()}>
-              <Upload className="h-4 w-4 mr-2" />
-              Upload Document
-            </Button>
-          </div>
-        )}
-      </div>
-    </>
+      )}
+    </div>
   );
 }

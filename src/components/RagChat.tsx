@@ -12,7 +12,6 @@ export default function RagChat() {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [darkMode] = useState(true);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [showMobileSidebar, setShowMobileSidebar] = useState(false);
 
   return (
     <ThemeProvider
@@ -28,13 +27,12 @@ export default function RagChat() {
             darkMode={darkMode}
             sidebarCollapsed={sidebarCollapsed}
             setSidebarCollapsed={setSidebarCollapsed}
-            showMobileSidebar={showMobileSidebar}
-            setShowMobileSidebar={setShowMobileSidebar}
           />
           <main
             className={cn(
               "flex-1 relative",
-              sidebarCollapsed ? "md:ml-[70px]" : "md:ml-[20px]",
+              // Mobile: partial sidebar (70px) when collapsed, full width (280px) when expanded
+              sidebarCollapsed ? "ml-[70px]" : "ml-[280px]",
               "transition-[margin] duration-300 ease-in-out"
             )}
           >
