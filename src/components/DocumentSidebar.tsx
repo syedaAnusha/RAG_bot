@@ -5,6 +5,7 @@ import { useDropzone } from "react-dropzone";
 import { Button } from "./ui/button";
 import { ScrollArea } from "./ui/scroll-area";
 import { useToast } from "./ui/use-toast";
+import { uploadDocument } from "@/lib/api";
 
 import {
   ChevronLeft,
@@ -29,6 +30,7 @@ interface DocumentSidebarProps {
   darkMode: boolean;
   sidebarCollapsed: boolean;
   setSidebarCollapsed: (collapsed: boolean) => void;
+  onClearDocuments: () => Promise<void>;
 }
 
 export default function DocumentSidebar({
@@ -37,6 +39,7 @@ export default function DocumentSidebar({
   darkMode,
   sidebarCollapsed,
   setSidebarCollapsed,
+  onClearDocuments,
 }: DocumentSidebarProps) {
   const { toast } = useToast();
 
@@ -67,21 +70,8 @@ export default function DocumentSidebar({
         setDocuments((prev) => [...prev, newDoc]);
 
         try {
-          // Create form data
-          const formData = new FormData();
-          formData.append("file", file);
-
-          // Upload and process the file
-          const response = await fetch("/api/upload", {
-            method: "POST",
-            body: formData,
-          });
-
-          if (!response.ok) {
-            throw new Error("Upload failed");
-          }
-
-          const data = await response.json();
+          // Upload and process the file using the api function
+          const data = await uploadDocument(file);
 
           // Update document with processed content
           setDocuments((prev) =>
@@ -91,10 +81,8 @@ export default function DocumentSidebar({
                     ...doc,
                     status: "ready",
                     progress: 100,
-                    content: data.documents[0]?.pageContent || "",
-                    summary: `Document processed with ${
-                      data.metadata?.chunkCount || 0
-                    } chunks`,
+                    content: data.message || "",
+                    summary: data.message,
                   }
                 : doc
             )
@@ -325,6 +313,16 @@ export default function DocumentSidebar({
             <Upload className="h-4 w-4 mr-2" />
             Upload Document
           </Button>
+          {documents.length > 0 && (
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={onClearDocuments}
+              className="mt-4"
+            >
+              Clear All Documents
+            </Button>
+          )}
         </div>
       )}
     </div>

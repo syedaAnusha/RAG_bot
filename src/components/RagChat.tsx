@@ -7,11 +7,24 @@ import Chat from "./Chat";
 import DocumentSidebar from "./DocumentSidebar";
 import { Document } from "@/types/chat";
 import { cn } from "@/lib/utils";
+import { clearVectorStore } from "@/lib/api";
+import { toast } from "sonner";
 
 export default function RagChat() {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [darkMode] = useState(true);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
+
+  const handleClearDocuments = async () => {
+    try {
+      await clearVectorStore();
+      setDocuments([]);
+      toast.success("Documents cleared successfully");
+    } catch (error) {
+      console.error("Error clearing documents:", error);
+      toast.error("Failed to clear documents");
+    }
+  };
 
   return (
     <ThemeProvider
@@ -27,6 +40,7 @@ export default function RagChat() {
             darkMode={darkMode}
             sidebarCollapsed={sidebarCollapsed}
             setSidebarCollapsed={setSidebarCollapsed}
+            onClearDocuments={handleClearDocuments}
           />
           <main
             className={cn(

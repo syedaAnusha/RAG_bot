@@ -14,7 +14,8 @@ import { ScrollArea } from "./ui/scroll-area";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
 import { Card } from "./ui/card";
-import { Document, ChatMessage, ChatAPISource } from "@/types/chat";
+import { Document, ChatMessage } from "@/types/chat";
+import { sendChatMessage } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 interface ChatProps {
@@ -42,54 +43,26 @@ export default function Chat({ documents }: ChatProps) {
     setLoading(true);
 
     try {
-      // Transform UI documents to LangChain format
-      const processedDocs = documents
-        .filter((doc) => doc.status === "ready")
-        .map((doc) => ({
-          pageContent: doc.content || "",
-          metadata: {
-            source: doc.name,
-            type: doc.type,
-            id: doc.id,
-          },
-        }));
+      const response = await sendChatMessage(input);
 
-      // Make API call to /api/chat
-      const response = await fetch("/api/chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          message: input,
-          documents: processedDocs,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to get response");
-      }
-
-      const data = await response.json();
-
-      // Add assistant message
       const assistantMessage: ChatMessage = {
         id: Date.now().toString(36) + "-" + (messages.length + 2),
         role: "assistant",
-        content: data.text || "I couldn't process your request.",
+        content: response.answer,
         timestamp: new Date(),
-        sources:
-          data.sources?.map((source: ChatAPISource) => source.metadata.id) ||
-          [],
+        sources: response.sources.map(
+          (s: { source: string; page: number; chunk: number }) =>
+            `${s.source} (Page ${s.page}, Chunk ${s.chunk})`
+        ),
       };
+
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (error) {
-      console.error("Error:", error);
-      // Add error message
+      console.error("Error sending message:", error);
       const errorMessage: ChatMessage = {
-        id: Date.now().toString(36) + "-" + (messages.length + 2),
-        role: "assistant",
-        content: "Sorry, I encountered an error processing your request.",
+        id: Date.now().toString(36) + "-error",
+        role: "system",
+        content: "Failed to send message. Please try again.",
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, errorMessage]);
