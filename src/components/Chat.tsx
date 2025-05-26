@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Bot,
   User,
@@ -27,6 +27,12 @@ export default function Chat({ documents }: ChatProps) {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Reset messages when documents change
+  useEffect(() => {
+    setMessages([]);
+    setInput("");
+  }, [documents]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || loading) return;
@@ -50,10 +56,11 @@ export default function Chat({ documents }: ChatProps) {
         role: "assistant",
         content: response.answer,
         timestamp: new Date(),
-        sources: response.sources.map(
-          (s: { source: string; page: number; chunk: number }) =>
-            `${s.source} (Page ${s.page}, Chunk ${s.chunk})`
-        ),
+        sources:
+          response.sources?.map(
+            (s: { source: string; page: number; chunk: number }) =>
+              `${s.source} (Page ${s.page}, Chunk ${s.chunk})`
+          ) || [],
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
@@ -70,6 +77,12 @@ export default function Chat({ documents }: ChatProps) {
       setLoading(false);
     }
   };
+
+  // Reset messages if documents change
+  useEffect(() => {
+    setMessages([]);
+    setInput("");
+  }, [documents]);
 
   return (
     <div className="flex flex-col h-full relative">

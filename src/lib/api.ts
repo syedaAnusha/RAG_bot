@@ -1,4 +1,4 @@
-const BACKEND_URL = process.env.PUBLIC_NEXT_BACKEND_URL;
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 export async function uploadDocument(file: File) {
   const formData = new FormData();

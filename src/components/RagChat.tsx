@@ -14,11 +14,13 @@ export default function RagChat() {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [darkMode] = useState(true);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
+  const [chatKey, setChatKey] = useState(0); // Add this to force chat component reset
 
   const handleClearDocuments = async () => {
     try {
       await clearVectorStore();
       setDocuments([]);
+      setChatKey((prev) => prev + 1); // This will reset the Chat component
       toast.success("Documents cleared successfully");
     } catch (error) {
       console.error("Error clearing documents:", error);
@@ -52,7 +54,7 @@ export default function RagChat() {
               "ml-[70px]"
             )}
           >
-            <Chat documents={documents} />
+            <Chat key={chatKey} documents={documents} />
           </main>
         </div>
         <Toaster />

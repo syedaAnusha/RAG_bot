@@ -42,9 +42,18 @@ export default function DocumentSidebar({
   onClearDocuments,
 }: DocumentSidebarProps) {
   const { toast } = useToast();
-
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
+      if (documents.length > 0) {
+        toast({
+          title: "Upload not allowed",
+          description:
+            "Please clear the current document before uploading a new one.",
+          duration: 3000,
+        });
+        return;
+      }
+
       for (const file of acceptedFiles) {
         if (file.size > 10 * 1024 * 1024) {
           toast({
@@ -115,7 +124,7 @@ export default function DocumentSidebar({
         }
       }
     },
-    [setDocuments, toast]
+    [setDocuments, toast, documents.length]
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -206,16 +215,21 @@ export default function DocumentSidebar({
             <div
               {...getRootProps()}
               className={cn(
-                "border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors",
+                "border-2 border-dashed rounded-lg p-4 text-center transition-colors",
                 isDragActive
                   ? "border-blue-500 bg-blue-50 dark:border-blue-400 dark:bg-blue-900/20"
-                  : "border-gray-300 dark:border-gray-700"
+                  : "border-gray-300 dark:border-gray-700",
+                documents.length > 0
+                  ? "opacity-50 cursor-not-allowed"
+                  : "cursor-pointer"
               )}
             >
-              <input {...getInputProps()} />
+              <input {...getInputProps()} disabled={documents.length > 0} />
               <Upload className="h-8 w-8 mx-auto mb-2 text-gray-400" />
               <p className="text-sm text-gray-500">
-                {isDragActive
+                {documents.length > 0
+                  ? "Document already uploaded"
+                  : isDragActive
                   ? "Drop the files here..."
                   : "Drag & drop files here, or click to select"}
               </p>
@@ -309,9 +323,14 @@ export default function DocumentSidebar({
       {/* Sidebar Footer */}
       {!sidebarCollapsed && (
         <div className="shrink-0 p-4 border-t border-gray-200 dark:border-gray-800">
-          <Button className="w-full" {...getRootProps()}>
+          {" "}
+          <Button
+            className="w-full"
+            {...getRootProps()}
+            disabled={documents.length > 0}
+          >
             <Upload className="h-4 w-4 mr-2" />
-            Upload Document
+            {documents.length > 0 ? "Document Uploaded" : "Upload Document"}
           </Button>
           {documents.length > 0 && (
             <Button
@@ -320,7 +339,7 @@ export default function DocumentSidebar({
               onClick={onClearDocuments}
               className="mt-4"
             >
-              Clear All Documents
+              Clear Document
             </Button>
           )}
         </div>
