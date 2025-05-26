@@ -1,8 +1,35 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# DocuMind - AI-Powered Document Q&amp;A
+
+DocuMind is an intelligent document analysis and question-answering system built with Next.js and LangChain. Upload your documents and ask questions to get accurate, AI-powered answers with source references.
+
+## Features
+
+- 📄 **Document Processing**: Upload and process PDF, DOCX, and TXT files (up to 10MB)
+- 🤖 **AI-Powered Answers**: Get precise answers to questions about your documents
+- 🔍 **Source References**: View the exact sources and locations of information in your documents
+- 🎨 **Modern UI**: Clean, responsive interface with dark mode support
+- ⚡ **Real-time Updates**: See processing status and progress in real-time
 
 ## Getting Started
 
-First, run the development server:
+1. Clone the repository
+2. Install dependencies:
+
+```bash
+npm install
+# or
+yarn install
+# or
+pnpm install
+```
+
+3. Configure environment variables:
+
+```env
+NEXT_PUBLIC_BACKEND_URL=your_backend_url
+```
+
+4. Start the development server:
 
 ```bash
 npm run dev
@@ -10,27 +37,31 @@ npm run dev
 yarn dev
 # or
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+5. Open [http://localhost:3000](http://localhost:3000) with your browser to use DocuMind
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Tech Stack
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Framework**: [Next.js](https://nextjs.org)
+- **UI Components**: [shadcn/ui](https://ui.shadcn.com)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com)
+- **AI/ML**:
+  - Access via APIs written in python (backend)
 
-## Learn More
+## Development
 
-To learn more about Next.js, take a look at the following resources:
+This project follows Next.js best practices and uses TypeScript for type safety. The main components are:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `RagChat`: Main application component
+- `Chat`: Handles chat interface and message management
+- `DocumentSidebar`: Manages document uploads and listings
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Deployment
 
-## Deploy on Vercel
+The application can be deployed using [Vercel](https://vercel.com). For other platforms, build the application using:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm run build
+npm start
+```
